@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --paper: #f7f5ee;
+  --paper-raised: #fffdf7;
+  --ink: #1f2430;
+  --ink-soft: #6b6a5f;
+  --ink-faint: #9a9889;
+  --rule: #d6d2c4;
+  --rule-soft: #e8e5d8;
+  --seal: #b23a2e;
+  --seal-soft: #f4e2df;
+  --pen: #2c5282;
+  --pen-soft: #e1eaf3;
+  --ok: #3f6b4a;
+  --ok-soft: #e5eee7;
+  --warn: #9a6b1f;
+  --warn-soft: #f7ecd9;
+
+  --font-display: 'Noto Serif JP', serif;
+  --font-ui: 'Zen Kaku Gothic New', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+}
+
+input,
+select {
+  font-family: var(--font-mono);
+}
+
+::selection {
+  background: var(--seal-soft);
+  color: var(--seal);
+}
+
+/* スクロールバーを控えめに */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
