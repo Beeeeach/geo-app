@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 import type { Constraint, PointDef } from './constraints';
+<<<<<<< HEAD
+import { buildSystem, buildPointIndex, violatesRangeConstraints } from './constraints';
+import { solve, pickMostCommonSolution, type SolveResult } from './solver';
+import { TEMPLATES, type Template } from './templates';
+=======
 import { buildSystem } from './constraints';
 import { solve } from './solver';
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
 
 export type QueryType = 'length' | 'angle' | 'coordinate' | 'area' | 'perimeter' | 'lengthRatioQuery';
 
@@ -31,12 +37,16 @@ export interface QueryResult {
   value: string;
 }
 
+<<<<<<< HEAD
+export type SolveStatusUI = 'idle' | 'ok' | 'underdetermined' | 'contradiction';
+=======
 export type SolveStatusUI =
   | 'idle'
   | 'ok'
   | 'underdetermined_similarOnly'
   | 'underdetermined_shapeVaries'
   | 'contradiction';
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
 
 interface AppState {
   points: PointDef[];
@@ -48,6 +58,14 @@ interface AppState {
   solveStatus: SolveStatusUI;
   deficiency: number;
 
+<<<<<<< HEAD
+  activeTemplateId: string | null;
+
+  memo: string;
+  setMemo: (memo: string) => void;
+
+=======
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
   addPoint: (name: string) => { ok: boolean; error?: string };
   removePoint: (name: string) => void;
   renamePoint: (oldName: string, newName: string) => { ok: boolean; error?: string };
@@ -59,6 +77,12 @@ interface AppState {
   removeQuery: (id: string) => void;
 
   runSolve: () => void;
+<<<<<<< HEAD
+
+  loadTemplate: (templateId: string) => void;
+  clearAll: () => void;
+=======
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
 }
 
 let idCounter = 0;
@@ -72,6 +96,80 @@ function formatNumber(n: number): string {
   return rounded.toString();
 }
 
+<<<<<<< HEAD
+/**
+ * 解の「向き」を正規化する。
+ *
+ * buildSystemは1点目を原点、2点目をx軸上に固定しているが、2点目がx軸の
+ * 正方向にあるか負方向にあるか、また図形全体が時計回りか反時計回りかは
+ * 拘束されていない。このため数式的には全く同じ図形の「鏡像」や「180度回転」
+ * が別の解として現れ、複数の初期値を試したときに見た目の異なる解が
+ * ランダムに選ばれてしまう。
+ *
+ * ここでは、解が得られた後に一貫した基準（重心を基準に最も遠い点が
+ * 第1象限寄りに来るように回転・反転する、など）で正規化することで、
+ * 「同じ図形なのに毎回向きが変わる」「鏡像が別解として扱われる」問題を防ぐ。
+ * ただし、これは表示上の正規化であり、クラスタリング自体は正規化前の
+ * 生データに対して行うと反転由来の解を誤って同一視してしまうため、
+ * クラスタリングでは向きの違いを吸収した「正規化済み座標」を比較に使う。
+ */
+function normalizeOrientation(x: number[]): number[] {
+  const n = x.length / 2;
+  if (n === 0) return x;
+
+  // 重心
+  let cx = 0, cy = 0;
+  for (let i = 0; i < n; i++) {
+    cx += x[i * 2];
+    cy += x[i * 2 + 1];
+  }
+  cx /= n;
+  cy /= n;
+
+  // 重心からの距離が最大の点を基準点として、その点が正のx軸上に来るように回転
+  let maxDist2 = -1;
+  let refIdx = 0;
+  for (let i = 0; i < n; i++) {
+    const dx = x[i * 2] - cx;
+    const dy = x[i * 2 + 1] - cy;
+    const d2 = dx * dx + dy * dy;
+    if (d2 > maxDist2) {
+      maxDist2 = d2;
+      refIdx = i;
+    }
+  }
+  const refDx = x[refIdx * 2] - cx;
+  const refDy = x[refIdx * 2 + 1] - cy;
+  const refAngle = Math.atan2(refDy, refDx);
+  const cosA = Math.cos(-refAngle);
+  const sinA = Math.sin(-refAngle);
+
+  const rotated: number[] = new Array(x.length);
+  for (let i = 0; i < n; i++) {
+    const dx = x[i * 2] - cx;
+    const dy = x[i * 2 + 1] - cy;
+    rotated[i * 2] = dx * cosA - dy * sinA;
+    rotated[i * 2 + 1] = dx * sinA + dy * cosA;
+  }
+
+  // 反転（鏡像）の正規化: y座標の符号付き総和（面積の目安）が負なら上下反転する。
+  // これにより時計回り/反時計回り（＝鏡像関係）の2つの解が同一の正規化結果になる。
+  let signedArea = 0;
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    signedArea += rotated[i * 2] * rotated[j * 2 + 1] - rotated[j * 2] * rotated[i * 2 + 1];
+  }
+  if (signedArea < 0) {
+    for (let i = 0; i < n; i++) {
+      rotated[i * 2 + 1] = -rotated[i * 2 + 1];
+    }
+  }
+
+  return rotated;
+}
+
+=======
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
 export const useAppStore = create<AppState>((set, get) => ({
   points: [],
   constraints: [],
@@ -80,6 +178,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   queryResults: [],
   solveStatus: 'idle',
   deficiency: 0,
+<<<<<<< HEAD
+  activeTemplateId: null,
+  memo: '',
+
+  setMemo: (memo: string) => set({ memo }),
+=======
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
 
   addPoint: (name: string) => {
     const trimmed = name.trim();
@@ -88,7 +193,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (points.some((p) => p.name === trimmed)) {
       return { ok: false, error: `点名「${trimmed}」は既に使われています` };
     }
+<<<<<<< HEAD
+    set({ points: [...points, { name: trimmed }], activeTemplateId: null });
+=======
     set({ points: [...points, { name: trimmed }] });
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
     return { ok: true };
   },
 
@@ -97,6 +206,41 @@ export const useAppStore = create<AppState>((set, get) => ({
     // 関連する制約・クエリも一緒に削除（不整合防止）
     const usesPoint = (names: (string | undefined)[]) => names.includes(name);
 
+<<<<<<< HEAD
+    const newConstraints = constraints.filter((c) => {
+      switch (c.type) {
+        case 'length':
+        case 'lengthEqual':
+        case 'lengthRatio':
+          return !(
+            (('segment' in c && usesPoint(c.segment)) as boolean) ||
+            (('seg1' in c && usesPoint(c.seg1)) as boolean) ||
+            (('seg2' in c && usesPoint(c.seg2)) as boolean)
+          );
+        case 'angle':
+          return !usesPoint(c.points);
+        case 'angleEqual':
+        case 'angleRatio':
+          return !(usesPoint(c.angle1) || usesPoint(c.angle2));
+        case 'collinear':
+          return !c.points.includes(name);
+        case 'parallel':
+        case 'perpendicular':
+          return !(usesPoint(c.seg1) || usesPoint(c.seg2));
+        case 'midpoint':
+          return !(c.midpoint === name || usesPoint(c.seg));
+        case 'onSegment':
+          return !(c.point === name || usesPoint(c.seg));
+        case 'onLine':
+          return !(c.point === name || usesPoint(c.line));
+        case 'internalDivision':
+        case 'externalDivision':
+          return !(c.point === name || usesPoint(c.seg));
+        default:
+          return true;
+      }
+    });
+=======
     // 制約が指定された点を参照しているかどうかを、型ごとに網羅的に判定する。
     // 新しい制約タイプを追加したときは、ここにもケースを追加すること
     // （追加を忘れると、削除したはずの点を参照する制約が残り続けるバグになる）。
@@ -184,15 +328,20 @@ export const useAppStore = create<AppState>((set, get) => ({
     };
 
     const newConstraints = constraints.filter((c) => !constraintUsesPoint(c));
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
 
     const newQueries = queries.filter((q) => {
       if (q.type === 'length') return !q.segment || !usesPoint(q.segment);
       if (q.type === 'angle') return !q.points || !usesPoint(q.points);
       if (q.type === 'coordinate') return q.point !== name;
       if (q.type === 'area' || q.type === 'perimeter') return !q.polygon || !q.polygon.includes(name);
+<<<<<<< HEAD
+      if (q.type === 'lengthRatioQuery') return !(usesPoint(q.seg1 ?? []) || usesPoint(q.seg2 ?? []));
+=======
       if (q.type === 'lengthRatioQuery') {
         return !((q.seg1 && usesPoint(q.seg1)) || (q.seg2 && usesPoint(q.seg2)));
       }
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
       return true;
     });
 
@@ -200,6 +349,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       points: points.filter((p) => p.name !== name),
       constraints: newConstraints,
       queries: newQueries,
+<<<<<<< HEAD
+      activeTemplateId: null,
+=======
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
     });
   },
 
@@ -212,6 +365,36 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     const rename = (n: string) => (n === oldName ? trimmed : n);
+<<<<<<< HEAD
+
+    set((state) => ({
+      points: state.points.map((p) => (p.name === oldName ? { name: trimmed } : p)),
+      constraints: state.constraints.map((c) => {
+        const copy = { ...c } as any;
+        if ('segment' in copy) copy.segment = copy.segment.map(rename);
+        if ('seg1' in copy) copy.seg1 = copy.seg1.map(rename);
+        if ('seg2' in copy) copy.seg2 = copy.seg2.map(rename);
+        if ('points' in copy && Array.isArray(copy.points)) copy.points = copy.points.map(rename);
+        if ('angle1' in copy) copy.angle1 = copy.angle1.map(rename);
+        if ('angle2' in copy) copy.angle2 = copy.angle2.map(rename);
+        if ('midpoint' in copy) copy.midpoint = rename(copy.midpoint);
+        if ('point' in copy) copy.point = rename(copy.point);
+        if ('line' in copy) copy.line = copy.line.map(rename);
+        if ('seg' in copy) copy.seg = copy.seg.map(rename);
+        return copy;
+      }),
+      queries: state.queries.map((q) => {
+        const copy = { ...q };
+        if (copy.segment) copy.segment = copy.segment.map(rename) as [string, string];
+        if (copy.points) copy.points = copy.points.map(rename) as [string, string, string];
+        if (copy.point) copy.point = rename(copy.point);
+        if (copy.polygon) copy.polygon = copy.polygon.map(rename);
+        if (copy.seg1) copy.seg1 = copy.seg1.map(rename) as [string, string];
+        if (copy.seg2) copy.seg2 = copy.seg2.map(rename) as [string, string];
+        return copy;
+      }),
+      activeTemplateId: null,
+=======
     const renameTuple = (arr: string[]) => arr.map(rename);
 
     // 制約オブジェクト内の「点名を保持しているプロパティ」をすべて洗い出してリネームする。
@@ -271,11 +454,68 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (copy.seg2) copy.seg2 = renameTuple(copy.seg2) as [string, string];
         return copy;
       }),
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
     }));
     return { ok: true };
   },
 
   addConstraint: (c) => {
+<<<<<<< HEAD
+    set((state) => ({
+      constraints: [...state.constraints, { ...c, id: genId() } as Constraint],
+      activeTemplateId: null,
+    }));
+  },
+
+  removeConstraint: (id) => {
+    set((state) => ({ constraints: state.constraints.filter((c) => c.id !== id), activeTemplateId: null }));
+  },
+
+  addQuery: (q) => {
+    set((state) => ({ queries: [...state.queries, { ...q, id: genId() }], activeTemplateId: null }));
+  },
+
+  removeQuery: (id) => {
+    set((state) => ({ queries: state.queries.filter((q) => q.id !== id), activeTemplateId: null }));
+  },
+
+  loadTemplate: (templateId: string) => {
+    const template = TEMPLATES.find((t) => t.id === templateId);
+    if (!template) return;
+
+    const points: PointDef[] = template.points.map((name) => ({ name }));
+    const constraints: Constraint[] = template.constraints.map((c) => ({ ...c, id: genId() } as Constraint));
+    const queries: Query[] = template.queries.map((q) => ({ ...q, id: genId() }));
+
+    set({
+      points,
+      constraints,
+      queries,
+      solvedPoints: [],
+      queryResults: [],
+      solveStatus: 'idle',
+      deficiency: 0,
+      activeTemplateId: template.id,
+      memo: template.description,
+    });
+
+    // すぐに作図まで行う
+    get().runSolve();
+  },
+
+  clearAll: () => {
+    set({
+      points: [],
+      constraints: [],
+      queries: [],
+      solvedPoints: [],
+      queryResults: [],
+      solveStatus: 'idle',
+      deficiency: 0,
+      activeTemplateId: null,
+      memo: '',
+    });
+=======
     set((state) => ({ constraints: [...state.constraints, { ...c, id: genId() } as Constraint] }));
   },
 
@@ -289,6 +529,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   removeQuery: (id) => {
     set((state) => ({ queries: state.queries.filter((q) => q.id !== id) }));
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
   },
 
   runSolve: () => {
@@ -299,6 +540,21 @@ export const useAppStore = create<AppState>((set, get) => ({
       return;
     }
 
+<<<<<<< HEAD
+    const residualFn = buildSystem(points, constraints);
+    const n = points.length;
+
+    // 複数の初期値パターンでリトライする。
+    // 発散対策に加え、鏡像・回転違いの「見た目が異なる同値解」が複数出ることがあるため、
+    // 得られた解を正規化した座標でクラスタリングし、最も多数決で支持される解を採用する
+    // （pickMostCommonSolutionを参照）。単純な残差最小選択だと、少数派の局所解
+    // （意図と異なる配置）がたまたま選ばれてしまうことがあるための対策。
+    function makeInitialGuess(seed: number): number[] {
+      const x0: number[] = [];
+      for (let i = 0; i < n; i++) {
+        const angle = (2 * Math.PI * i) / n + seed;
+        const radius = 2.5 + (seed % 3);
+=======
     const pointIndex: Record<string, number> = {};
     points.forEach((p, i) => (pointIndex[p.name] = i));
 
@@ -324,12 +580,49 @@ export const useAppStore = create<AppState>((set, get) => ({
       for (let i = 0; i < n; i++) {
         const angle = (2 * Math.PI * i) / n + angleOffset;
         const radius = radiusBase + i * 0.31 * ((seed % 2 === 0) ? 1 : -1);
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
         x0.push(radius * Math.cos(angle) + i * 0.13 + seed * 0.07);
         x0.push(radius * Math.sin(angle) + i * 0.11 - seed * 0.05);
       }
       return x0;
     }
 
+<<<<<<< HEAD
+    const seeds = [0, 0.4, 0.9, 1.3, 1.8, 2.3, 2.9, 3.4, 4.0, 4.6, 5.1, 5.7];
+    const rawAttempts: SolveResult[] = seeds.map((seed) => solve(residualFn, makeInitialGuess(seed)));
+
+    // onSegment・内分点・外分点などは「共線」という等式でしか残差化できず、
+    // 「線分の内側/外側」という範囲条件はソルバー単体では保証されない
+    // （詳細は constraints.ts の violatesRangeConstraints のコメントを参照）。
+    // そのため、収束はしたが範囲条件に違反している解をここで弾く。
+    // 全ての解が範囲違反になってしまった場合（＝本当にそのような配置しかない場合）は、
+    // やむを得ずそのまま使う。
+    const pointIndex = buildPointIndex(points);
+    const rangeValid = rawAttempts.filter(
+      (r) => r.status === 'contradiction' || !violatesRangeConstraints(r.x, constraints, pointIndex)
+    );
+    const attempts = rangeValid.length > 0 ? rangeValid : rawAttempts;
+
+    // クラスタリングのために、各解を向き正規化した座標に置き換えたコピーを作る。
+    // （実際に採用する座標は、後で「正規化前」の値から選び直す）
+    const normalizedAttempts: SolveResult[] = attempts.map((r) => ({
+      ...r,
+      x: normalizeOrientation(r.x),
+    }));
+
+    const bestNormalized = pickMostCommonSolution(normalizedAttempts);
+    // 採用された正規化済み解と一致する（同じ元解の）ものを元のattemptsから探す
+    const bestIndex = normalizedAttempts.indexOf(bestNormalized);
+    const result = bestIndex >= 0 ? attempts[bestIndex] : attempts[0];
+
+    // 最終的に表示する座標も正規化しておく（毎回同じ向きで表示されるようにするため）
+    const finalX = normalizeOrientation(result.x);
+
+    const solvedPoints: SolvedPoint[] = points.map((p, i) => ({
+      name: p.name,
+      x: finalX[i * 2],
+      y: finalX[i * 2 + 1],
+=======
     const MIN_SUCCESSFUL = 3; // 「本当に収束成功した」結果がこれだけ集まれば十分とみなす
     const MAX_ATTEMPTS = 60; // これ以上は試行しない（無限リトライ防止）
 
@@ -360,6 +653,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       name: p.name,
       x: result.x[i * 2],
       y: result.x[i * 2 + 1],
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
     }));
 
     let queryResults: QueryResult[] = [];
@@ -443,3 +737,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
   },
 }));
+<<<<<<< HEAD
+
+export { TEMPLATES };
+export type { Template };
+=======
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
