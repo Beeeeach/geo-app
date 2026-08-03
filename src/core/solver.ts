@@ -5,11 +5,15 @@
 
 export type ResidualFn = (x: number[]) => number[];
 
+<<<<<<< HEAD
+export type SolveStatus = 'ok' | 'underdetermined' | 'contradiction';
+=======
 export type SolveStatus =
   | 'ok'
   | 'underdetermined_similarOnly' // 条件不足だが、相似な図形しか出てこない
   | 'underdetermined_shapeVaries' // 条件不足で、形自体が変わる図形も考えられる
   | 'contradiction';
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
 
 export interface SolveResult {
   x: number[];
@@ -109,6 +113,11 @@ export function norm(v: number[]): number {
   return Math.sqrt(v.reduce((s, vi) => s + vi * vi, 0));
 }
 
+<<<<<<< HEAD
+function symmetricEigenvalues(A: number[][], maxIter = 100): number[] {
+  const n = A.length;
+  const M = A.map((row) => row.slice());
+=======
 // 対称行列の固有値・固有ベクトルをヤコビ法で計算する。
 // 戻り値: { eigenvalues: number[], eigenvectors: number[][] }
 // eigenvectors[k] が eigenvalues[k] に対応する単位固有ベクトル。
@@ -119,6 +128,7 @@ function symmetricEigen(A: number[][], maxIter = 100): { eigenvalues: number[]; 
   const V: number[][] = Array.from({ length: n }, (_, i) =>
     Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))
   );
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
 
   for (let iter = 0; iter < maxIter; iter++) {
     let p = 0, q = 1, maxVal = 0;
@@ -153,6 +163,14 @@ function symmetricEigen(A: number[][], maxIter = 100): { eigenvalues: number[]; 
         M[q][i] = M[i][q];
       }
     }
+<<<<<<< HEAD
+  }
+
+  return M.map((row, i) => row[i]);
+}
+
+export function estimateRank(J: number[][], tol = 1e-6) {
+=======
 
     // 回転行列VにもGivens回転を適用して固有ベクトルを蓄積
     for (let i = 0; i < n; i++) {
@@ -181,6 +199,7 @@ export interface RankInfo {
 }
 
 export function estimateRank(J: number[][], centeredX: number[], tol = 1e-6): RankInfo {
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
   const n = J[0].length;
 
   const colNorms = new Array(n).fill(0);
@@ -192,6 +211,15 @@ export function estimateRank(J: number[][], centeredX: number[], tol = 1e-6): Ra
   const Jn = J.map((row) => row.map((v, j) => v / colNorms[j]));
 
   const JTJ = matMulTranspose(Jn);
+<<<<<<< HEAD
+  const eigenvalues = symmetricEigenvalues(JTJ);
+  const maxEig = Math.max(...eigenvalues, 1e-12);
+
+  const rank = eigenvalues.filter((e) => e / maxEig > tol).length;
+  const deficiency = n - rank;
+
+  return { rank, deficiency, eigenvalues };
+=======
   const { eigenvalues, eigenvectors } = symmetricEigen(JTJ);
   const maxEig = Math.max(...eigenvalues, 1e-12);
 
@@ -244,6 +272,7 @@ export function estimateRank(J: number[][], centeredX: number[], tol = 1e-6): Ra
 
   const rank = n - deficiency;
   return { rank, deficiency, eigenvalues, deficiencyKind };
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
 }
 
 export function solve(
@@ -261,6 +290,12 @@ export function solve(
   // 有限の解として現実的な図形のスケールをはるかに超える値。
   const DIVERGENCE_THRESHOLD = 1e5;
 
+<<<<<<< HEAD
+  let x = x0.slice();
+  let lambda = initialLambda;
+  let r = residualFn(x);
+  let cost = norm(r);
+=======
   // 探索の途中経過にだけ、座標が際限なく大きくなるのを防ぐ弱い正則化項を加える。
   // これは「解を歪める」ためではなく、角度条件だけで拘束される点などが
   // 勾配に沿って無限遠に飛んでいってしまい、本来「条件不足」であるべき
@@ -283,11 +318,21 @@ export function solve(
     return [...base, ...regTerms];
   };
 
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
   let iterations = 0;
   let diverged = false;
 
   for (let iter = 0; iter < maxIterations; iter++) {
     iterations = iter + 1;
+<<<<<<< HEAD
+    const { J, r0 } = numericalJacobian(residualFn, x);
+    const currentCost = norm(r0);
+
+    if (currentCost < tolerance) {
+      break;
+    }
+
+=======
     const regularizedResidualFn = makeRegularizedFn(regularizationStrength);
     const { J, r0 } = numericalJacobian(regularizedResidualFn, x);
 
@@ -300,6 +345,7 @@ export function solve(
     }
 
     const currentCost = norm(r0);
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
     const JTJ = matMulTranspose(J);
     const JTr = matVecTranspose(J, r0);
 
@@ -315,11 +361,20 @@ export function solve(
       const delta = solveLinearSystem(A, b);
 
       const xNew = x.map((xi, i) => xi + delta[i]);
+<<<<<<< HEAD
+      const rNew = residualFn(xNew);
+=======
       const rNew = regularizedResidualFn(xNew);
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
       const newCost = norm(rNew);
 
       if (newCost < currentCost) {
         x = xNew;
+<<<<<<< HEAD
+        r = rNew;
+        cost = newCost;
+=======
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
         lambda = Math.max(lambda / 3, 1e-12);
         accepted = true;
       } else {
@@ -331,12 +386,15 @@ export function solve(
       break;
     }
 
+<<<<<<< HEAD
+=======
     // 正則化を反復ごとに弱めていく（アニーリング）。
     // 十分小さくなったら完全に0にし、正則化の残滓が最後の精密な収束を
     // 妨げないようにする。
     regularizationStrength *= REGULARIZATION_DECAY;
     if (regularizationStrength < 1e-8) regularizationStrength = 0;
 
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
     // 発散チェック: 座標が現実離れした大きさになったら即打ち切る。
     // これ以上続けても数値精度が破綻するだけで、真の矛盾判定を汚染する。
     if (x.some((xi) => Math.abs(xi) > DIVERGENCE_THRESHOLD)) {
@@ -345,15 +403,24 @@ export function solve(
     }
   }
 
+<<<<<<< HEAD
+  const convergedResult = !diverged && cost < 1e-6;
+=======
   // 最終的な残差評価・収束判定・ランク判定は、必ず正則化なしの本来の
   // 残差関数で行う（正則化項が最終結果の精度や判定に影響しないようにするため）。
   const finalCost = norm(residualFn(x));
   const convergedResult = !diverged && finalCost < 1e-6;
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
   let status: SolveStatus = 'contradiction';
   let deficiency = 0;
 
   if (convergedResult) {
     const { J } = numericalJacobian(residualFn, x);
+<<<<<<< HEAD
+    const rankInfo = estimateRank(J);
+    deficiency = rankInfo.deficiency;
+    status = deficiency > 0 ? 'underdetermined' : 'ok';
+=======
     // x は既に「最初の点が原点」になるよう固定されているので、
     // このままスケール変換の方向ベクトル（原点中心の拡大縮小）として使える。
     const rankInfo = estimateRank(J, x);
@@ -365,11 +432,16 @@ export function solve(
     } else {
       status = 'underdetermined_shapeVaries';
     }
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
   }
 
   return {
     x,
+<<<<<<< HEAD
+    residualNorm: cost,
+=======
     residualNorm: finalCost,
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
     converged: convergedResult,
     iterations,
     status,
@@ -377,3 +449,56 @@ export function solve(
     diverged,
   };
 }
+<<<<<<< HEAD
+
+/**
+ * 複数の初期値から得られた収束解の集合の中から、
+ * 「最も多くの試行が収束した解（＝最も安定して見つかる解）」を選ぶ。
+ *
+ * ラングレー型の問題（角度条件主体で自由度が少ない）では、初期値によって
+ * 図形として正しい解と、鏡像・ねじれなど「数式的には条件を満たすが図として
+ * 意図と異なる」局所解の両方に収束しうる。単純に残差最小のものを採用すると
+ * どちらに転ぶか初期値依存になってしまうため、複数の初期値でクラスタリングし、
+ * 最大クラスタ（最も多数決で支持される解）を採用することで安定させる。
+ */
+export function pickMostCommonSolution(
+  results: SolveResult[],
+  clusterTolerance = 1e-3
+): SolveResult {
+  const converged = results.filter((r) => r.status !== 'contradiction' && !r.diverged);
+  const pool = converged.length > 0 ? converged : results;
+
+  type Cluster = { rep: SolveResult; members: SolveResult[] };
+  const clusters: Cluster[] = [];
+
+  for (const r of pool) {
+    let placed = false;
+    for (const cluster of clusters) {
+      const d = norm(r.x.map((v, i) => v - cluster.rep.x[i]));
+      // 座標スケールに対する相対誤差でクラスタ判定
+      const scale = Math.max(1, norm(cluster.rep.x));
+      if (d / scale < clusterTolerance) {
+        cluster.members.push(r);
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      clusters.push({ rep: r, members: [r] });
+    }
+  }
+
+  // 最大クラスタを選ぶ。同数の場合は残差が最小のものを優先。
+  clusters.sort((a, b) => {
+    if (b.members.length !== a.members.length) return b.members.length - a.members.length;
+    const aMin = Math.min(...a.members.map((m) => m.residualNorm));
+    const bMin = Math.min(...b.members.map((m) => m.residualNorm));
+    return aMin - bMin;
+  });
+
+  const best = clusters[0];
+  // クラスタ内で最も残差が小さい解を代表として返す
+  return best.members.reduce((acc, cur) => (cur.residualNorm < acc.residualNorm ? cur : acc));
+}
+=======
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
