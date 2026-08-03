@@ -43,6 +43,18 @@ export function PointPanel() {
     setError(null);
   };
 
+<<<<<<< HEAD
+  const hasNoPoints = points.length === 0;
+
+  return (
+    <section style={{ padding: '18px 18px 20px', borderBottom: '8px solid var(--rule-soft)' }}>
+      <h2
+        style={{
+          fontSize: 13,
+          letterSpacing: '0.04em',
+          color: 'var(--ink)',
+          fontWeight: 800,
+=======
   // よく使う点名を、既に使われていないものだけ候補として出す
   const suggestions = ['A', 'B', 'C', 'D', 'E', 'F', 'M', 'N', 'O', 'P'].filter(
     (n) => !points.some((p) => p.name === n)
@@ -61,6 +73,7 @@ export function PointPanel() {
           fontSize: 13,
           fontWeight: 700,
           color: 'var(--ink)',
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
           margin: '0 0 12px',
           display: 'flex',
           alignItems: 'center',
@@ -68,6 +81,36 @@ export function PointPanel() {
         }}
       >
         <span
+<<<<<<< HEAD
+          className={hasNoPoints ? 'attention-pulse' : undefined}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 20,
+            height: 20,
+            borderRadius: '50%',
+            background: 'var(--accent)',
+            color: 'white',
+            fontSize: 11,
+            flexShrink: 0,
+          }}
+        >
+          1
+        </span>
+        点
+        {hasNoPoints && (
+          <span style={{ fontSize: 11.5, fontWeight: 500, color: 'var(--accent)' }} className="attention-text-pulse">
+            ← まずここから！
+          </span>
+        )}
+      </h2>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+        {points.length === 0 && (
+          <p style={{ color: 'var(--ink-soft)', fontSize: 13, margin: 0, background: 'var(--rule-soft)', padding: '10px 12px', borderRadius: 6, width: '100%' }}>
+            まだ点がありません。下から追加してください。
+=======
           style={{
             display: 'inline-block',
             width: 4,
@@ -83,6 +126,7 @@ export function PointPanel() {
         {points.length === 0 && (
           <p style={{ color: 'var(--ink-faint)', fontSize: 12.5, margin: 0, fontStyle: 'italic' }}>
             点を追加して作図を始めましょう。
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
           </p>
         )}
         {points.map((p) => (
@@ -91,10 +135,17 @@ export function PointPanel() {
             style={{
               display: 'flex',
               alignItems: 'center',
+<<<<<<< HEAD
+              gap: 4,
+              background: 'var(--accent-soft)',
+              border: '1px solid var(--rule)',
+              borderRadius: 7,
+=======
               gap: 2,
               background: 'var(--paper-raised)',
               border: '1px solid var(--rule)',
               borderRadius: 5,
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
               padding: '4px 4px 4px 12px',
             }}
           >
@@ -109,10 +160,16 @@ export function PointPanel() {
                   if (e.key === 'Escape') setEditingName(null);
                 }}
                 style={{
+<<<<<<< HEAD
+                  width: 60,
+                  fontSize: 13,
+                  border: '1px solid var(--accent)',
+=======
                   width: 56,
                   fontSize: 15,
                   fontFamily: 'var(--font-display)',
                   border: '1px solid var(--pen)',
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
                   borderRadius: 3,
                   padding: '1px 4px',
                 }}
@@ -120,6 +177,10 @@ export function PointPanel() {
             ) : (
               <span
                 onDoubleClick={() => startEdit(p.name)}
+<<<<<<< HEAD
+                title="ダブルクリックで名前変更"
+                style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, cursor: 'text', color: 'var(--accent)' }}
+=======
                 title="ダブルクリックで名前を変更"
                 style={{
                   fontFamily: 'var(--font-display)',
@@ -128,6 +189,7 @@ export function PointPanel() {
                   cursor: 'text',
                   color: 'var(--ink)',
                 }}
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
               >
                 {p.name}
               </span>
@@ -138,7 +200,11 @@ export function PointPanel() {
               style={{
                 border: 'none',
                 background: 'transparent',
+<<<<<<< HEAD
+                color: 'var(--ink-soft)',
+=======
                 color: 'var(--ink-faint)',
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
                 cursor: 'pointer',
                 fontSize: 15,
                 lineHeight: 1,
@@ -156,6 +222,29 @@ export function PointPanel() {
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+<<<<<<< HEAD
+          placeholder="例: A"
+          className={hasNoPoints ? 'attention-pulse' : undefined}
+          style={{
+            flex: 1,
+            padding: '8px 10px',
+            border: '1px solid var(--rule)',
+            borderRadius: 6,
+            fontSize: 14,
+            background: 'var(--panel)',
+          }}
+        />
+        <button
+          onClick={handleAdd}
+          style={{
+            padding: '8px 16px',
+            border: 'none',
+            borderRadius: 6,
+            background: 'var(--accent)',
+            color: 'white',
+            fontSize: 13,
+            fontWeight: 700,
+=======
           placeholder="点の名前 (例: A)"
           list="point-suggestions"
           style={{
@@ -183,6 +272,7 @@ export function PointPanel() {
             color: 'var(--paper)',
             fontSize: 13,
             fontWeight: 500,
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
             cursor: 'pointer',
           }}
         >
@@ -190,7 +280,11 @@ export function PointPanel() {
         </button>
       </div>
       {error && (
+<<<<<<< HEAD
+        <p style={{ color: 'var(--danger)', fontSize: 12, marginTop: 8, background: 'var(--danger-soft)', padding: '6px 10px', borderRadius: 5 }}>{error}</p>
+=======
         <p style={{ color: 'var(--seal)', fontSize: 12, marginTop: 7 }}>{error}</p>
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
       )}
     </section>
   );
