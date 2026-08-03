@@ -34,6 +34,14 @@ export type Constraint =
   | { id: string; type: 'midpoint'; midpoint: string; seg: [string, string] }
   | { id: string; type: 'onSegment'; point: string; seg: [string, string] }
   | { id: string; type: 'onLine'; point: string; line: [string, string] }
+<<<<<<< HEAD
+  // --- 内分点・外分点 ---
+  // point が seg=[a,b] を m:n に「内分」する点。 point = a + (m/(m+n)) * (b-a)
+  | { id: string; type: 'internalDivision'; point: string; seg: [string, string]; ratio: [number, number] }
+  // point が seg=[a,b] を m:n に「外分」する点。 point = a + (m/(m-n)) * (b-a)  (m≠n)
+  | { id: string; type: 'externalDivision'; point: string; seg: [string, string]; ratio: [number, number] }
+=======
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
   // --- Version2: 円関連 ---
   | { id: string; type: 'onCircle'; point: string; center: string; radius: string }
   | { id: string; type: 'circleRadius'; center: string; radiusPoint: string; value: number }
@@ -49,6 +57,12 @@ export type Constraint =
   | { id: string; type: 'incenter'; center: string; triangle: [string, string, string] }
   | { id: string; type: 'orthocenter'; center: string; triangle: [string, string, string] }
   // --- Version3: 四角形の特殊形（頂点順 A,B,C,D で周を成す） ---
+<<<<<<< HEAD
+  | { id: string; type: 'parallelogram'; points: [string, string, string, string] }
+  | { id: string; type: 'rectangle'; points: [string, string, string, string] }
+  | { id: string; type: 'square'; points: [string, string, string, string] }
+  | { id: string; type: 'trapezoid'; points: [string, string, string, string] }
+=======
   | { id: string; type: 'quadrilateral'; points: [string, string, string, string] }
   | { id: string; type: 'parallelogram'; points: [string, string, string, string] }
   | { id: string; type: 'rectangle'; points: [string, string, string, string] }
@@ -63,6 +77,7 @@ export type Constraint =
   | { id: string; type: 'area'; polygon: string[]; value: number }
   // --- 長さが等しい制約のグループ化（3本以上まとめて等しい） ---
   | { id: string; type: 'lengthEqualGroup'; segments: [string, string][] }
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
   // --- Version4: 相似・合同 ---
   | { id: string; type: 'similarTriangles'; triangle1: [string, string, string]; triangle2: [string, string, string] }
   | { id: string; type: 'congruentTriangles'; triangle1: [string, string, string]; triangle2: [string, string, string] }
@@ -85,6 +100,8 @@ export type Constraint =
       type: 'harmonicConjugate';
       // A, B, C, D が調和点列: (A,B;C,D) = -1
       points: [string, string, string, string];
+<<<<<<< HEAD
+=======
     }
   // --- 線対称 ---
   | {
@@ -109,6 +126,7 @@ export type Constraint =
       point: string;
       center: string;
       radiusPoint: string;
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
     };
 
 type PointIndex = Record<string, number>;
@@ -137,6 +155,8 @@ export function angleAt(A: Vec2, B: Vec2, C: Vec2): number {
   return Math.atan2(cross, dot);
 }
 
+<<<<<<< HEAD
+=======
 // 2つの線分(P1-P2)と(P3-P4)について、交差の「度合い」を表す滑らかな正の値を返す。
 // t, u はそれぞれの線分上でのパラメータ位置（0〜1が線分の内側）。
 // 交差している（t,uが共に(0,1)の内側）ときに正の値になり、
@@ -171,6 +191,7 @@ function nonSelfIntersectingPenalty(A: Vec2, B: Vec2, C: Vec2, D: Vec2): number 
   return crossingPenalty(A, B, C, D) + crossingPenalty(B, C, D, A);
 }
 
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
 export function buildResidualFn(constraint: Constraint, pointIndex: PointIndex): ResidualFn {
   const P = (x: number[], name: string) => getPoint(x, pointIndex, name);
 
@@ -266,6 +287,12 @@ export function buildResidualFn(constraint: Constraint, pointIndex: PointIndex):
       };
     }
 
+<<<<<<< HEAD
+    case 'onSegment':
+    case 'onLine': {
+      const p = constraint.point;
+      const [a, b] = constraint.type === 'onLine' ? constraint.line : constraint.seg;
+=======
     case 'onSegment': {
       // 点が「線分AB上」にある = 直線AB上にあり、かつ A,Bの間（0≤t≤1）に収まっている。
       // 前半（同一直線上）は等式で表せるが、後半（範囲内）は不等式なので、
@@ -296,6 +323,7 @@ export function buildResidualFn(constraint: Constraint, pointIndex: PointIndex):
       // 点が直線AB上にある（延長線上も含めてよい、範囲制限なし）
       const p = constraint.point;
       const [a, b] = constraint.line;
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
       return (x) => {
         const P0 = P(x, p), A = P(x, a), B = P(x, b);
         const cross = (B[0] - A[0]) * (P0[1] - A[1]) - (B[1] - A[1]) * (P0[0] - A[0]);
@@ -303,6 +331,43 @@ export function buildResidualFn(constraint: Constraint, pointIndex: PointIndex):
       };
     }
 
+<<<<<<< HEAD
+    // --- 内分点・外分点 ---
+
+    case 'internalDivision': {
+      // point が a,b を m:n に内分する: point = a + (m/(m+n)) * (b-a)
+      // -> (m+n) * point = (m+n) * a + m * (b - a) = n*a + m*b
+      const { point, seg, ratio } = constraint;
+      const [a, b] = seg;
+      const [m, n] = ratio;
+      const sum = m + n;
+      return (x) => {
+        const Pt = P(x, point), A = P(x, a), B = P(x, b);
+        return [
+          sum * Pt[0] - (n * A[0] + m * B[0]),
+          sum * Pt[1] - (n * A[1] + m * B[1]),
+        ];
+      };
+    }
+
+    case 'externalDivision': {
+      // point が a,b を m:n に外分する（m≠n）: point = a + (m/(m-n)) * (b-a)
+      // -> (m-n) * point = (m-n)*a + m*(b-a) = -n*a + m*b
+      const { point, seg, ratio } = constraint;
+      const [a, b] = seg;
+      const [m, n] = ratio;
+      const diff = m - n;
+      return (x) => {
+        const Pt = P(x, point), A = P(x, a), B = P(x, b);
+        return [
+          diff * Pt[0] - (-n * A[0] + m * B[0]),
+          diff * Pt[1] - (-n * A[1] + m * B[1]),
+        ];
+      };
+    }
+
+=======
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
     // --- Version2: 円関連 ---
 
     case 'onCircle': {
@@ -454,6 +519,10 @@ export function buildResidualFn(constraint: Constraint, pointIndex: PointIndex):
 
     // --- Version3: 四角形の特殊形（頂点順 A,B,C,D） ---
 
+<<<<<<< HEAD
+    case 'parallelogram': {
+      // 対角線の中点が一致する -> AC の中点 = BD の中点
+=======
     case 'quadrilateral': {
       // 「四角形ABCD」という指定そのもの。
       // 特別な形状条件はないが、A→B→C→Dの順で結んだときに
@@ -468,6 +537,7 @@ export function buildResidualFn(constraint: Constraint, pointIndex: PointIndex):
     case 'parallelogram': {
       // 対角線の中点が一致する -> AC の中点 = BD の中点
       // （この条件だけで自動的に非自己交差な凸四角形になるため、追加のペナルティは不要）
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
       const [a, b, c, d] = constraint.points;
       return (x) => {
         const A = P(x, a), B = P(x, b), C = P(x, c), D = P(x, d);
@@ -512,6 +582,15 @@ export function buildResidualFn(constraint: Constraint, pointIndex: PointIndex):
     }
 
     case 'trapezoid': {
+<<<<<<< HEAD
+      // AB ∥ DC （1組の対辺が平行、頂点順A,B,C,D）
+      const [a, b, c, d] = constraint.points;
+      return (x) => {
+        const A = P(x, a), B = P(x, b), C = P(x, c), D = P(x, d);
+        const AB: Vec2 = [B[0] - A[0], B[1] - A[1]];
+        const DC: Vec2 = [C[0] - D[0], C[1] - D[1]];
+        return [AB[0] * DC[1] - AB[1] * DC[0]];
+=======
       // 指定された2辺が平行（頂点順 A,B,C,D は自己交差しない四角形を想定）
       const [a, b, c, d] = constraint.points;
       const [[s1p1, s1p2], [s2p1, s2p2]] = constraint.parallelSides;
@@ -560,6 +639,7 @@ export function buildResidualFn(constraint: Constraint, pointIndex: PointIndex):
           residuals.push(lengths2[i] - lengths2[0]);
         }
         return residuals;
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
       };
     }
 
@@ -694,6 +774,8 @@ export function buildResidualFn(constraint: Constraint, pointIndex: PointIndex):
       };
     }
 
+<<<<<<< HEAD
+=======
     // --- 線対称 ---
 
     case 'reflection': {
@@ -784,6 +866,7 @@ export function buildResidualFn(constraint: Constraint, pointIndex: PointIndex):
       };
     }
 
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
     default: {
       const _exhaustive: never = constraint;
       throw new Error(`Unknown constraint type: ${JSON.stringify(_exhaustive)}`);
@@ -791,9 +874,97 @@ export function buildResidualFn(constraint: Constraint, pointIndex: PointIndex):
   }
 }
 
+<<<<<<< HEAD
+/**
+ * ソルバーの残差式だけでは表現しきれない「範囲」条件（線分の内側にある、など）を
+ * 解が得られた後に検証するための関数。
+ *
+ * 例えば onSegment は「直線ABと共線である」という等式でしか残差化できず、
+ * 「AとBの間にある」という不等式条件は残差に組み込めない（組み込むと
+ * ペナルティ関数になり、Levenberg-Marquardt法の滑らかな収束を妨げやすいため）。
+ * そのため、複数の初期値から得られた解の中に「共線ではあるが線分の外」という
+ * 誤った解が混ざることがある。これを解決するため、解を採用する前に
+ * 「本当に線分の内側にあるか」をここで再チェックし、範囲外ならその解を棄却する。
+ */
+export function violatesRangeConstraints(
+  x: number[],
+  constraints: Constraint[],
+  pointIndex: PointIndex,
+  tolerance = 1e-4
+): boolean {
+  const P = (name: string): Vec2 => getPoint(x, pointIndex, name);
+
+  for (const c of constraints) {
+    if (c.type === 'onSegment') {
+      const Pt = P(c.point);
+      const A = P(c.seg[0]);
+      const B = P(c.seg[1]);
+      const abx = B[0] - A[0], aby = B[1] - A[1];
+      const len2 = abx * abx + aby * aby;
+      if (len2 < 1e-12) continue;
+      const t = ((Pt[0] - A[0]) * abx + (Pt[1] - A[1]) * aby) / len2;
+      if (t < -tolerance || t > 1 + tolerance) return true;
+    }
+
+    if (c.type === 'internalDivision') {
+      // 内分点は必ず線分の内側（0 <= t <= 1）にある
+      const Pt = P(c.point);
+      const A = P(c.seg[0]);
+      const B = P(c.seg[1]);
+      const abx = B[0] - A[0], aby = B[1] - A[1];
+      const len2 = abx * abx + aby * aby;
+      if (len2 < 1e-12) continue;
+      const t = ((Pt[0] - A[0]) * abx + (Pt[1] - A[1]) * aby) / len2;
+      if (t < -tolerance || t > 1 + tolerance) return true;
+    }
+
+    if (c.type === 'externalDivision') {
+      // 外分点は線分の外側（t < 0 または t > 1）になければならない
+      const Pt = P(c.point);
+      const A = P(c.seg[0]);
+      const B = P(c.seg[1]);
+      const abx = B[0] - A[0], aby = B[1] - A[1];
+      const len2 = abx * abx + aby * aby;
+      if (len2 < 1e-12) continue;
+      const t = ((Pt[0] - A[0]) * abx + (Pt[1] - A[1]) * aby) / len2;
+      if (t > -tolerance && t < 1 + tolerance) return true;
+    }
+
+    if (c.type === 'incircleTangentPoint') {
+      // 接点は辺の内側になければならない
+      const Pt = P(c.point);
+      const A = P(c.side[0]);
+      const B = P(c.side[1]);
+      const abx = B[0] - A[0], aby = B[1] - A[1];
+      const len2 = abx * abx + aby * aby;
+      if (len2 < 1e-12) continue;
+      const t = ((Pt[0] - A[0]) * abx + (Pt[1] - A[1]) * aby) / len2;
+      if (t < -tolerance || t > 1 + tolerance) return true;
+    }
+  }
+
+  return false;
+}
+
 export interface FixOptions {
   fixFirstPoint?: boolean;
   fixSecondPointOnXAxis?: boolean;
+  /**
+   * 2点目のx座標を正の方向に固定する（x[2] > 0 を強制する残差を追加しない代わりに、
+   * 初期値の段階でx[2]を正に置くことを前提とする）。これ自体は残差を追加しないが、
+   * 呼び出し側（store.ts）が初期値生成時にこの情報を使って鏡像解の発生を抑える。
+   */
+}
+
+export function buildPointIndex(points: PointDef[]): PointIndex {
+  const pointIndex: PointIndex = {};
+  points.forEach((p, i) => (pointIndex[p.name] = i));
+  return pointIndex;
+=======
+export interface FixOptions {
+  fixFirstPoint?: boolean;
+  fixSecondPointOnXAxis?: boolean;
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
 }
 
 export function buildSystem(
@@ -801,8 +972,12 @@ export function buildSystem(
   constraints: Constraint[],
   fixOptions: FixOptions = {}
 ): ResidualFn {
+<<<<<<< HEAD
+  const pointIndex: PointIndex = buildPointIndex(points);
+=======
   const pointIndex: PointIndex = {};
   points.forEach((p, i) => (pointIndex[p.name] = i));
+>>>>>>> 30dca02bd58e331c72bf234f5087adfda38e9ffb
 
   const constraintFns = constraints.map((c) => buildResidualFn(c, pointIndex));
 
